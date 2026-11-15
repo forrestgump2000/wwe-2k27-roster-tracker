@@ -10,6 +10,8 @@ import { Backdrop, CardLogo, Render, renderCredit } from "./Render";
 import { RatingChart } from "./RatingChart";
 import { AddModal } from "./AddModal";
 import { Toast } from "./Toast";
+import { PhotoModal } from "./PhotoModal";
+import { usePhotoOverride } from "@/lib/photoOverrides";
 
 type Detail = { entry: RosterEntry | null; preds: Prediction[]; reports: Report[] };
 
@@ -17,6 +19,8 @@ export function Profile({ w }: { w: Wrestler }) {
   const [d, setD] = useState<Detail | null>(null);
   const [tab, setTab] = useState<"overview" | "predictions" | "reports">("overview");
   const [adding, setAdding] = useState(false);
+  const [photo, setPhoto] = useState(false);
+  const custom = usePhotoOverride(w.slug);
   const [toast, setToast] = useState("");
   const clearToast = useCallback(() => setToast(""), []);
 
@@ -39,6 +43,7 @@ export function Profile({ w }: { w: Wrestler }) {
     <div className="wrap" style={{ "--c": w.color } as CSSProperties}>
       <Link href="/" className="back">← Back to roster</Link>
       <div className="prof">
+        <div className="prof-side">
         <div className="card prof-card" style={{ "--c": w.color } as CSSProperties}>
           <Backdrop />
           <CardLogo />
@@ -50,9 +55,11 @@ export function Profile({ w }: { w: Wrestler }) {
             <div className="meta"><span className={`chip ${w.brand.replace(" ", "")}`}>{w.brand}</span><span className="chip">{w.div === "F" ? "Women's" : "Men's"} division</span></div>
           </div>
         </div>
+        <button className="btn btn-ghost btn-sm photo-btn" onClick={() => setPhoto(true)}>📷 {custom ? "Change your photo" : "Change photo"}</button>
+        </div>
 
         <div>
-          {(() => { const c = renderCredit(w.slug); return c ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Render cut out from a photo by {c.author} · <a href={c.page} target="_blank" rel="noopener noreferrer">{c.license}, Wikimedia Commons</a></p> : null; })()}
+          {(() => { const c = renderCredit(w.slug); return custom ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Showing your custom photo (only visible to you)</p> : c ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Render cut out from a photo by {c.author} · <a href={c.page} target="_blank" rel="noopener noreferrer">{c.license}, Wikimedia Commons</a></p> : null; })()}
           <h1 className="p-name">{w.name}</h1>
           <div className="p-chips">
             {!d ? <span className="chip">Loading…</span> : d.entry ? (
@@ -125,6 +132,7 @@ export function Profile({ w }: { w: Wrestler }) {
         </div>
       </div>
       {adding && <AddModal added={new Set()} initial={w} onClose={() => setAdding(false)} onAdded={() => { setAdding(false); load(); setToast(`${w.name} added to the roster!`); }} />}
+      {photo && <PhotoModal w={w} onClose={() => setPhoto(false)} onSaved={(m) => { setPhoto(false); setToast(m); }} />}
       {toast && <Toast msg={toast} onDone={clearToast} />}
     </div>
   );
@@ -179,7 +187,7 @@ function Games({ w }: { w: Wrestler }) {
           </div>
         </>
       )}
-      <p className="note">Mainline = the annual SmackDown! → SmackDown vs. Raw → WWE ’12/’13 → WWE 2K series ({MAINLINE.length} games). DLC and pre-order characters count.</p>
+      <p className="note">Mainline = the annual SmackDown! → SmackDown vs. Raw → WWE ’12/’13 → WWE 2K series ({MAINLINE.length} games). DLC, pre-order and unlockable characters count. Verified against full per-game rosters from TheSmackDownHotel and the Pro Wrestling & SmackDown fandom wikis.</p>
     </div>
   );
 }

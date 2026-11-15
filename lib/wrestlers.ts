@@ -1,4 +1,5 @@
 import { expandPre, GAME_BY_CODE, MAINLINE, RATED } from "./games";
+import APPEARANCES from "./appearances.json";
 
 export type Brand = "Raw" | "SmackDown" | "NXT" | "Free Agent" | "Legend" | "Alumni";
 export type Wrestler = {
@@ -322,6 +323,20 @@ for (const x of WRESTLERS) {
   const b = CURRENT[x.slug];
   if (b) x.brand = b;
   else if (x.brand === "Raw" || x.brand === "SmackDown" || x.brand === "NXT" || x.brand === "Free Agent") x.brand = "Alumni";
+}
+
+/**
+ * Verified game appearances (scripts/verify-appearances): every mainline and spin-off game is
+ * cross-checked against full per-game rosters (TheSmackDownHotel + Pro Wrestling / SmackDown fandom
+ * wikis, incl. DLC and alternate ring names). Ratings are only kept for verified games.
+ */
+const APP = APPEARANCES as Record<string, { mainline: string[]; spinoffs: string[] }>;
+for (const x of WRESTLERS) {
+  const a = APP[x.slug];
+  if (!a) continue;
+  x.mainline = a.mainline;
+  x.spinoffs = a.spinoffs;
+  x.ratings = Object.fromEntries(Object.entries(x.ratings).filter(([g]) => a.mainline.includes(g)));
 }
 
 export const BY_SLUG: Record<string, Wrestler> = Object.fromEntries(WRESTLERS.map((x) => [x.slug, x]));

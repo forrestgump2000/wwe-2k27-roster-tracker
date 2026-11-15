@@ -2,6 +2,7 @@
 import { useState } from "react";
 import type { Wrestler } from "@/lib/wrestlers";
 import RENDERS from "@/lib/renders.json";
+import { usePhotoOverride } from "@/lib/photoOverrides";
 
 type Credit = { author: string; license: string; page: string };
 export const renderCredit = (slug: string) => (RENDERS as Record<string, Credit>)[slug];
@@ -41,6 +42,11 @@ export function Silhouette({ w }: { w: Wrestler }) {
 
 export function Photo({ w, className, size = 384 }: { w: Wrestler; className?: string; size?: 96 | 384 | 640 }) {
   const [failed, setFailed] = useState(false);
+  const custom = usePhotoOverride(w.slug);
+  if (custom) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img className={className} src={custom} alt={w.name} />;
+  }
   if (failed || !renderCredit(w.slug)) return <Silhouette w={w} />;
   return (
     // eslint-disable-next-line @next/next/no-img-element

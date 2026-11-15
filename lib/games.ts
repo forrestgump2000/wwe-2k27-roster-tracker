@@ -34,7 +34,6 @@ export const MAINLINE: Game[] = [
 export const RATED = ["2K14", "2K15", "2K16", "2K17", "2K18", "2K19", "2K20", "2K22", "2K23", "2K24", "2K25", "2K26"];
 
 export const SPINOFFS: Game[] = [
-  { code: "WMNES", title: "WWF WrestleMania (NES)", year: 1989, mainline: false, era: "Spin-off" },
   { code: "SWM", title: "WWF Super WrestleMania", year: 1992, mainline: false, era: "Spin-off" },
   { code: "RR93", title: "WWF Royal Rumble", year: 1993, mainline: false, era: "Spin-off" },
   { code: "RAW94", title: "WWF Raw", year: 1994, mainline: false, era: "Spin-off" },
@@ -44,15 +43,11 @@ export const SPINOFFS: Game[] = [
   { code: "WM2K", title: "WWF WrestleMania 2000", year: 1999, mainline: false, era: "Spin-off" },
   { code: "NM", title: "WWF No Mercy", year: 2000, mainline: false, era: "Spin-off" },
   { code: "RR", title: "WWF Royal Rumble (Dreamcast)", year: 2000, mainline: false, era: "Spin-off" },
-  { code: "RAW", title: "WWF Raw (Xbox)", year: 2002, mainline: false, era: "Spin-off" },
-  { code: "WMX8", title: "WWF WrestleMania X8", year: 2002, mainline: false, era: "Spin-off" },
   { code: "WMXIX", title: "WWE WrestleMania XIX", year: 2003, mainline: false, era: "Spin-off" },
-  { code: "RAW2", title: "WWE Raw 2", year: 2003, mainline: false, era: "Spin-off" },
   { code: "DOR", title: "WWE Day of Reckoning", year: 2004, mainline: false, era: "Spin-off" },
   { code: "DOR2", title: "WWE Day of Reckoning 2", year: 2005, mainline: false, era: "Spin-off" },
   { code: "LOW", title: "WWE Legends of WrestleMania", year: 2009, mainline: false, era: "Spin-off" },
   { code: "AS", title: "WWE All Stars", year: 2011, mainline: false, era: "Spin-off" },
-  { code: "SC", title: "WWE SuperCard", year: 2014, mainline: false, era: "Spin-off" },
   { code: "BG", title: "WWE 2K Battlegrounds", year: 2020, mainline: false, era: "Spin-off" },
 ];
 
