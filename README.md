@@ -28,6 +28,6 @@ node scripts/build-renders.mjs
 npm install
 npm run dev
 ```
-Without `BLOB_READ_WRITE_TOKEN`, the app uses an in-memory store.
+Without `BLOB_READ_WRITE_TOKEN`, the app uses an in-memory store. Note: `vercel link` / `vercel env pull` write the **production** Blob token into `.env.local`, so run local tests with `BLOB_READ_WRITE_TOKEN= npm run dev` to avoid writing to the live roster.
 
 *Fan-made. Not affiliated with WWE, 2K or Visual Concepts. Rating history is community-compiled and may be approximate.*
