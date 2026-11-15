@@ -1,6 +1,7 @@
 "use client";
 import { useCallback, useMemo, useState, type CSSProperties } from "react";
-import { BY_SLUG, WRESTLERS, type Wrestler } from "@/lib/wrestlers";
+import { WRESTLERS, type Wrestler } from "@/lib/wrestlers";
+import { mergeWrestlers } from "@/lib/custom";
 import { OFFICIAL_METHODS } from "@/lib/meta";
 import { appearance, useSummary } from "@/lib/client";
 import { Card } from "./Card";
@@ -20,9 +21,10 @@ export function Home() {
   const [toast, setToast] = useState("");
   const clearToast = useCallback(() => setToast(""), []);
 
+  const merged = useMemo(() => mergeWrestlers(data?.custom), [data]);
   const roster = useMemo(
-    () => (data?.roster ?? []).map((e) => ({ e, w: BY_SLUG[e.slug] })).filter((x): x is { e: typeof x.e; w: Wrestler } => !!x.w),
-    [data]
+    () => (data?.roster ?? []).map((e) => ({ e, w: merged.bySlug[e.slug] })).filter((x): x is { e: typeof x.e; w: Wrestler } => !!x.w),
+    [data, merged]
   );
   const added = useMemo(() => new Set(roster.map((r) => r.w.slug)), [roster]);
 
@@ -105,7 +107,7 @@ export function Home() {
           <div className="empty">
             <div className="ghosts"><div>?</div><div>?</div><div>?</div></div>
             <h3>The roster is empty</h3>
-            <p>Nobody’s been confirmed yet. Be the first to add a superstar from our database of {WRESTLERS.length} current stars and legends.</p>
+            <p>Nobody’s been confirmed yet. Be the first to add a superstar from our database of {merged.all.length} current stars and legends — or create someone new.</p>
             <button className="btn btn-red" onClick={() => setOpen(true)}>＋ Add the first superstar</button>
           </div>
         )}
@@ -126,6 +128,8 @@ export function Home() {
       {open && (
         <AddModal
           added={added}
+          extra={merged.extra}
+          onCreated={reload}
           onClose={() => setOpen(false)}
           onAdded={(w) => { setOpen(false); setToast(`${w.name} is on the WWE 2K27 roster!`); reload(); }}
         />

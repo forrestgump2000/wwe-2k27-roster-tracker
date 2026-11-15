@@ -67,6 +67,7 @@ export function Profile({ w }: { w: Wrestler }) {
                 : <span className={`chip ${official ? "ok" : "rumor"}`}>{official ? "✓ Confirmed for WWE 2K27" : "◉ Reported for WWE 2K27"}</span>
             ) : <span className="chip">Not on the 2K27 roster yet</span>}
             {w.hot && <span className="chip Legend">🔥 Highly speculated</span>}
+            {w.custom && <span className="chip community">◆ Community-added superstar</span>}
           </div>
 
           {d && !d.entry && (
@@ -90,7 +91,7 @@ export function Profile({ w }: { w: Wrestler }) {
                 <div className="big-n">
                   <div className="num">{a.all}<sup>{ordinal(a.all)}</sup></div>
                   <p>
-                    {a.debut ? <>WWE 2K27 would be <b>{w.name}’s debut</b> in a mainline WWE game.</>
+                    {w.custom ? <>{w.name} was added by the community, so there’s no verified game history on record — WWE 2K27 could be their <b>series debut</b>.</> : a.debut ? <>WWE 2K27 would be <b>{w.name}’s debut</b> in a mainline WWE game.</>
                       : <>WWE 2K27 would be <b>{w.name}’s {a.all}{ordinal(a.all)} mainline WWE game</b> — and their <b>{a.twoK}{ordinal(a.twoK)}</b> in the 2K era.</>}
                     {" "}They’ve appeared in <b>{w.mainline.length + w.spinoffs.length}</b> WWE games in total.
                   </p>

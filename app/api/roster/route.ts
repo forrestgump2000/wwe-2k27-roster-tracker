@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { addEntry, getSummary } from "@/lib/store";
-import { BY_SLUG } from "@/lib/wrestlers";
+import { superstarExists } from "@/lib/exists";
 import { METHODS } from "@/lib/meta";
 import { clean } from "@/lib/validate";
 
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
   const details = clean(body.details, 400);
   const source = clean(body.source, 300);
   const addedBy = clean(body.addedBy, 30);
-  if (!BY_SLUG[slug]) return NextResponse.json({ error: "Unknown superstar" }, { status: 400 });
+  if (!(await superstarExists(slug))) return NextResponse.json({ error: "Unknown superstar" }, { status: 400 });
   if (!METHODS.some((m) => m.id === method)) return NextResponse.json({ error: "Pick how they were confirmed" }, { status: 400 });
   if (details.length < 8) return NextResponse.json({ error: "Tell us how they were confirmed (at least a few words)" }, { status: 400 });
   if (source && !/^https?:\/\//i.test(source)) return NextResponse.json({ error: "Source must be a link starting with http" }, { status: 400 });

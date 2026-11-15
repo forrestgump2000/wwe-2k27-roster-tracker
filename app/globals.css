@@ -353,3 +353,19 @@ textarea.inp { resize: vertical; min-height: 90px; }
 .prof-side .prof-card { position: relative; top: 0; }
 .photo-btn { align-self: center; }
 @media (max-width: 900px) { .prof-side { position: relative; top: 0; } }
+.nav { display: flex; gap: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 4px; }
+.nav a { padding: 7px 14px; border-radius: 999px; font-size: 13px; font-weight: 700; color: var(--muted); transition: all .15s; white-space: nowrap; }
+.nav a:hover { color: var(--text); }
+.nav a.on { background: var(--text); color: #000; }
+.hdr .wrap { gap: 10px; }
+@media (max-width: 600px) { .live { display: none; } .brand-txt small { display: none; } .nav a { padding: 6px 11px; font-size: 12px; } }
+@media (max-width: 380px) { .brand-txt { display: none; } }
+.chip.dim { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.12); color: var(--muted); }
+.hero-sm { padding-top: 40px; }
+.hero-sm h1 { font-size: clamp(54px, 9vw, 110px); }
+.create-new { display: flex; align-items: center; gap: 12px; width: 100%; margin-top: 14px; padding: 14px; border-radius: 14px; border: 1px dashed var(--line2); background: rgba(229,16,30,.06); cursor: pointer; text-align: left; transition: all .15s; }
+.create-new:hover { border-color: var(--red2); background: rgba(229,16,30,.12); }
+.create-new span { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--red); font-weight: 800; flex: none; }
+.create-new b { display: block; font-size: 14px; }
+.create-new small { color: var(--muted); font-size: 12px; }
+.chip.community { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.45); color: #ddd6fe; }

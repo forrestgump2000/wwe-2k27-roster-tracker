@@ -17,6 +17,8 @@ export type Wrestler = {
   /** overall rating by 2K game code */
   ratings: Record<string, number>;
   hot?: boolean;
+  /** created by the community, not in the built-in database */
+  custom?: boolean;
 };
 
 type Opts = { wiki?: string; spin?: string; hot?: boolean };

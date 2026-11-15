@@ -25,18 +25,21 @@ export type RosterEntry = {
 };
 export type Prediction = { slug: string; rating: number; by: string; comment?: string; at: string };
 export type Report = { slug: string; reason: string; details?: string; at: string };
+/** A superstar created by the community (not in the built-in database). */
+export type CustomSuperstar = { slug: string; name: string; brand: string; div: "M" | "F"; addedBy?: string; at: string };
 
 export type Summary = {
   roster: RosterEntry[];
   preds: Record<string, { count: number; avg: number }>;
   reports: Record<string, number>;
+  custom: CustomSuperstar[];
 };
 
 const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-type Mem = { roster: RosterEntry[]; preds: Prediction[]; reports: Report[] };
+type Mem = { roster: RosterEntry[]; preds: Prediction[]; reports: Report[]; custom: CustomSuperstar[] };
 const g = globalThis as unknown as { __wweMem?: Mem };
-const mem: Mem = (g.__wweMem ??= { roster: [], preds: [], reports: [] });
+const mem: Mem = (g.__wweMem ??= { roster: [], preds: [], reports: [], custom: [] });
 
 type BlobItem = { pathname: string; url: string; uploadedAt: Date };
 
@@ -71,12 +74,14 @@ export async function getSummary(): Promise<Summary> {
       roster: [...mem.roster],
       preds: aggregatePreds(mem.preds.map((p) => [p.slug, p.rating] as const)),
       reports: countBy(mem.reports.map((r) => r.slug)),
+      custom: [...mem.custom],
     };
   }
-  const [rosterBlobs, predBlobs, reportBlobs] = await Promise.all([
+  const [rosterBlobs, predBlobs, reportBlobs, custom] = await Promise.all([
     listAll("roster/"),
     listAll("preds/"),
     listAll("reports/"),
+    getCustom(),
   ]);
 
   // earliest confirmation per slug wins
@@ -94,7 +99,34 @@ export async function getSummary(): Promise<Summary> {
     predBlobs.map((b) => [seg(b.pathname, 1), parseInt(seg(b.pathname, 2).split("_")[0], 10)] as const)
   );
   const reports = countBy(reportBlobs.map((b) => seg(b.pathname, 1)));
-  return { roster, preds, reports };
+  return { roster, preds, reports, custom };
+}
+
+export async function getCustom(): Promise<CustomSuperstar[]> {
+  if (!useBlob) return [...mem.custom];
+  const blobs = await listAll("custom/");
+  const first = new Map<string, BlobItem>();
+  for (const b of blobs) {
+    const slug = seg(b.pathname, 1);
+    const cur = first.get(slug);
+    if (!cur || new Date(b.uploadedAt) < new Date(cur.uploadedAt)) first.set(slug, b);
+  }
+  return (await Promise.all([...first.values()].map((b) => readJson<CustomSuperstar>(b.url)))).filter(
+    (x): x is CustomSuperstar => !!x
+  );
+}
+
+/** Returns false if a community superstar with this slug already exists. */
+export async function addCustom(c: CustomSuperstar): Promise<boolean> {
+  if (!useBlob) {
+    if (mem.custom.some((x) => x.slug === c.slug)) return false;
+    mem.custom.push(c);
+    return true;
+  }
+  const existing = await list({ prefix: `custom/${c.slug}/`, limit: 1 });
+  if (existing.blobs.length) return false;
+  await write(`custom/${c.slug}/${stamp()}.json`, c);
+  return true;
 }
 
 function aggregatePreds(items: ReadonlyArray<readonly [string, number]>) {

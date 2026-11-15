@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import Link from "next/link";
 import { Anton, Inter } from "next/font/google";
 import "./globals.css";
+import { Nav } from "@/components/Nav";
 
 const anton = Anton({ weight: "400", subsets: ["latin"], variable: "--font-anton" });
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
@@ -25,7 +26,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <img src="/apple-icon" alt="" />
               <span className="brand-txt"><b>WWE <span>2K27</span></b><small>Roster Tracker</small></span>
             </Link>
-            <span className="live"><i />Live community roster</span>
+            <Nav />
+            <span className="live"><i />Live</span>
           </div>
         </header>
         <main>{children}</main>
