@@ -20,7 +20,7 @@ export function Profile({ w }: { w: Wrestler }) {
   const [d, setD] = useState<Detail | null>(null);
   const [tab, setTab] = useState<"overview" | "predictions" | "reports">("overview");
   const [adding, setAdding] = useState(false);
-  const [photo, setPhoto] = useState(false);
+  const [photo, setPhoto] = useState<false | "edit" | "publish">(false);
   const custom = usePhotoOverride(w.slug);
   const shared = useSharedPhoto(w.slug);
   const [toast, setToast] = useState("");
@@ -57,11 +57,11 @@ export function Profile({ w }: { w: Wrestler }) {
             <div className="meta"><span className={`chip ${w.brand.replace(" ", "")}`}>{w.brand}</span><span className="chip">{w.div === "F" ? "Women's" : "Men's"} division</span></div>
           </div>
         </div>
-        <button className="btn btn-ghost btn-sm photo-btn" onClick={() => setPhoto(true)}>📷 {custom ? "Change your photo" : "Change photo"}</button>
+        <button className="btn btn-ghost btn-sm photo-btn" onClick={() => setPhoto("edit")}>📷 {custom ? "Change your photo" : "Change photo"}</button>
         </div>
 
         <div>
-          {(() => { const c = renderCredit(w.slug); return custom ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Showing the photo saved on this device (only visible to you)</p> : shared ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Photo shared by {shared.by || "Anonymous"} · Credit: {shared.credit} · <button className="linkish" onClick={() => setTab("reports")}>Report photo</button></p> : c ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Render cut out from a photo by {c.author} · <a href={c.page} target="_blank" rel="noopener noreferrer">{c.license}, Wikimedia Commons</a></p> : null; })()}
+          {(() => { const c = renderCredit(w.slug); return custom ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Showing the photo saved on this device (only visible to you) · <button className="linkish" onClick={() => setPhoto("publish")}>Make it public</button></p> : shared ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Photo shared by {shared.by || "Anonymous"} · Credit: {shared.credit} · <button className="linkish" onClick={() => setTab("reports")}>Report photo</button></p> : c ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Render cut out from a photo by {c.author} · <a href={c.page} target="_blank" rel="noopener noreferrer">{c.license}, Wikimedia Commons</a></p> : null; })()}
           <h1 className="p-name">{w.name}</h1>
           <div className="p-chips">
             {!d ? <span className="chip">Loading…</span> : d.entry ? (
@@ -135,7 +135,7 @@ export function Profile({ w }: { w: Wrestler }) {
         </div>
       </div>
       {adding && <AddModal added={new Set()} initial={w} onClose={() => setAdding(false)} onAdded={() => { setAdding(false); load(); setToast(`${w.name} added to the roster!`); }} />}
-      {photo && <PhotoModal w={w} onClose={() => setPhoto(false)} onSaved={(m) => { setPhoto(false); setToast(m); }} />}
+      {photo && <PhotoModal w={w} publishDevice={photo === "publish"} onClose={() => setPhoto(false)} onSaved={(m) => { setPhoto(false); setToast(m); }} />}
       {toast && <Toast msg={toast} onDone={clearToast} />}
     </div>
   );

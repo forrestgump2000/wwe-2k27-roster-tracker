@@ -7,7 +7,7 @@ import { Backdrop, CardLogo, Render } from "./Render";
 
 type Mode = "share" | "me";
 
-export function PhotoModal({ w, onClose, onSaved }: { w: Wrestler; onClose: () => void; onSaved: (msg: string) => void }) {
+export function PhotoModal({ w, onClose, onSaved, publishDevice = false }: { w: Wrestler; onClose: () => void; onSaved: (msg: string) => void; publishDevice?: boolean }) {
   const custom = usePhotoOverride(w.slug);
   const shared = useSharedPhoto(w.slug);
   const [mode, setMode] = useState<Mode>("share");
@@ -20,6 +20,7 @@ export function PhotoModal({ w, onClose, onSaved }: { w: Wrestler; onClose: () =
   const [credit, setCredit] = useState("");
   const [by, setBy] = useState("");
   const [rights, setRights] = useState(false);
+  const [fromDevice, setFromDevice] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
   const shareRef = useRef<HTMLInputElement>(null);
 
@@ -31,6 +32,30 @@ export function PhotoModal({ w, onClose, onSaved }: { w: Wrestler; onClose: () =
     return () => { window.removeEventListener("keydown", k); document.body.style.overflow = ""; };
   }, [onClose]);
   useEffect(() => () => { if (preview) URL.revokeObjectURL(preview); }, [preview]);
+
+  /** Loads the photo saved on this device into the share form so it can be made public. */
+  async function useDevicePhoto() {
+    if (!custom) return;
+    setErr("");
+    try {
+      const r = await fetch(custom);
+      if (!r.ok) throw new Error();
+      const blob = await r.blob();
+      if (!blob.type.startsWith("image/")) throw new Error();
+      setFile(new File([blob], "device-photo", { type: blob.type }));
+      setPreview(URL.createObjectURL(blob));
+      setFromDevice(true);
+    } catch {
+      setErr(custom.startsWith("blob:")
+        ? "Couldn’t read the photo saved on this device."
+        : "Your device photo is a link to another site, which blocks copying it. Download the image and upload it with “Choose an image” instead.");
+    }
+  }
+  const autoLoaded = useRef(false);
+  useEffect(() => {
+    if (publishDevice && custom && !autoLoaded.current) { autoLoaded.current = true; useDevicePhoto(); }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publishDevice, custom]);
 
   async function run(fn: () => Promise<void>, msg: string) {
     setErr(""); setBusy(true);
@@ -51,7 +76,9 @@ export function PhotoModal({ w, onClose, onSaved }: { w: Wrestler; onClose: () =
       const r = await fetch("/api/photos", { method: "POST", body: fd });
       if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error ?? "Upload failed");
       await refreshSharedPhotos();
-    }, custom ? "Shared! (Your device photo still shows for you — reset it to see the shared one)" : "Photo shared with everyone");
+      // it's public now, so the private device copy is no longer needed
+      if (fromDevice) await resetPhoto(w.slug);
+    }, fromDevice ? "Your photo is now public for everyone" : custom ? "Shared! (Your device photo still shows for you — reset it to see the shared one)" : "Photo shared with everyone");
   }
 
   return (
@@ -79,9 +106,14 @@ export function PhotoModal({ w, onClose, onSaved }: { w: Wrestler; onClose: () =
                 {shared && <> Currently showing a photo shared by {shared.by || "Anonymous"}.</>}
               </p>
               <input ref={shareRef} type="file" accept="image/png,image/webp,image/jpeg" hidden
-                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) { setFile(f); setPreview(URL.createObjectURL(f)); setErr(""); } }} />
+                onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ""; if (f) { setFile(f); setPreview(URL.createObjectURL(f)); setFromDevice(false); setErr(""); } }} />
+              {custom && (
+                <button className={`btn ${fromDevice ? "btn-gold" : "btn-ghost"}`} style={{ width: "100%", marginBottom: 8 }} disabled={busy} onClick={useDevicePhoto}>
+                  {fromDevice ? "✓ Using the photo saved on this device" : "📱 Make my device photo public"}
+                </button>
+              )}
               <button className="btn btn-ghost" style={{ width: "100%" }} disabled={busy} onClick={() => shareRef.current?.click()}>
-                ⇪ {file ? `Selected: ${file.name.slice(0, 28)}` : "Choose an image (transparent PNG looks best)"}
+                ⇪ {file && !fromDevice ? `Selected: ${file.name.slice(0, 28)}` : custom ? "…or choose a different image" : "Choose an image (transparent PNG looks best)"}
               </button>
               <div className="field" style={{ marginTop: 12 }}>
                 <label>Photo credit <i>*</i></label>
