@@ -28,6 +28,9 @@ export type Report = { slug: string; reason: string; details?: string; at: strin
 /** A superstar created by the community (not in the built-in database). */
 export type CustomSuperstar = { slug: string; name: string; brand: string; div: "M" | "F"; addedBy?: string; at: string };
 
+/** A photo shared with everyone for a superstar. Newest one that isn't report-hidden wins. */
+export type SharedPhoto = { slug: string; url: string; credit: string; by?: string; at: string };
+
 export type Summary = {
   roster: RosterEntry[];
   preds: Record<string, { count: number; avg: number }>;
@@ -37,9 +40,10 @@ export type Summary = {
 
 const useBlob = !!process.env.BLOB_READ_WRITE_TOKEN;
 
-type Mem = { roster: RosterEntry[]; preds: Prediction[]; reports: Report[]; custom: CustomSuperstar[] };
+type Mem = { roster: RosterEntry[]; preds: Prediction[]; reports: Report[]; custom: CustomSuperstar[]; photos: SharedPhoto[] };
 const g = globalThis as unknown as { __wweMem?: Mem };
-const mem: Mem = (g.__wweMem ??= { roster: [], preds: [], reports: [], custom: [] });
+const mem: Mem = (g.__wweMem ??= { roster: [], preds: [], reports: [], custom: [], photos: [] });
+mem.photos ??= [];
 
 type BlobItem = { pathname: string; url: string; uploadedAt: Date };
 
@@ -207,4 +211,47 @@ export async function addPrediction(p: Prediction) {
 export async function addReport(r: Report) {
   if (!useBlob) return void mem.reports.push(r);
   await write(`reports/${r.slug}/${r.reason}_${stamp()}.json`, r);
+}
+
+/** Reports with this reason, filed after a photo was shared, count against that photo. */
+export const BAD_PHOTO = "bad-photo";
+export const PHOTO_HIDE_AT = 3;
+
+function pickPhotos(photos: SharedPhoto[], badReports: { slug: string; at: string }[]) {
+  const out: Record<string, SharedPhoto> = {};
+  const bySlug = new Map<string, SharedPhoto[]>();
+  for (const p of photos) bySlug.set(p.slug, [...(bySlug.get(p.slug) ?? []), p]);
+  for (const [slug, list] of bySlug) {
+    list.sort((a, b) => b.at.localeCompare(a.at));
+    // newest photo whose reports (filed after it, before the next newer one) stay under the limit
+    for (let i = 0; i < list.length; i++) {
+      const from = list[i].at, until = i > 0 ? list[i - 1].at : "9999";
+      const n = badReports.filter((r) => r.slug === slug && r.at >= from && r.at < until).length;
+      if (n < PHOTO_HIDE_AT) { out[slug] = list[i]; break; }
+    }
+  }
+  return out;
+}
+
+export async function getSharedPhotos(): Promise<Record<string, SharedPhoto>> {
+  if (!useBlob) {
+    return pickPhotos(mem.photos, mem.reports.filter((r) => r.reason === BAD_PHOTO));
+  }
+  const [metaBlobs, reportBlobs] = await Promise.all([listAll("photometa/"), listAll("reports/")]);
+  const photos = (await Promise.all(metaBlobs.map((b) => readJson<SharedPhoto>(b.url)))).filter((x): x is SharedPhoto => !!x);
+  const bad = reportBlobs
+    .filter((b) => seg(b.pathname, 2).startsWith(`${BAD_PHOTO}_`))
+    .map((b) => ({ slug: seg(b.pathname, 1), at: new Date(b.uploadedAt).toISOString() }));
+  return pickPhotos(photos, bad);
+}
+
+export async function addSharedPhoto(slug: string, data: Buffer, contentType: string, credit: string, by?: string) {
+  const at = new Date().toISOString();
+  if (!useBlob) {
+    mem.photos.push({ slug, url: `data:${contentType};base64,${data.toString("base64")}`, credit, by, at });
+    return;
+  }
+  const ext = contentType === "image/png" ? "png" : contentType === "image/jpeg" ? "jpg" : "webp";
+  const img = await put(`photos/${slug}/${stamp()}.${ext}`, data, { access: "public", addRandomSuffix: true, contentType });
+  await write(`photometa/${slug}/${stamp()}.json`, { slug, url: img.url, credit, by, at } satisfies SharedPhoto);
 }

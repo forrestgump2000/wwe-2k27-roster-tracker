@@ -14,6 +14,7 @@ export const REPORT_REASONS = [
   { id: "weak-source", label: "Source isn't good enough" },
   { id: "wrong-info", label: "Wrong games / ratings info" },
   { id: "fake", label: "Fake or troll entry" },
+  { id: "bad-photo", label: "Shared photo is wrong or not allowed" },
   { id: "other", label: "Something else" },
 ] as const;
 

@@ -12,6 +12,7 @@ import { AddModal } from "./AddModal";
 import { Toast } from "./Toast";
 import { PhotoModal } from "./PhotoModal";
 import { usePhotoOverride } from "@/lib/photoOverrides";
+import { useSharedPhoto } from "@/lib/sharedPhotos";
 
 type Detail = { entry: RosterEntry | null; preds: Prediction[]; reports: Report[] };
 
@@ -21,6 +22,7 @@ export function Profile({ w }: { w: Wrestler }) {
   const [adding, setAdding] = useState(false);
   const [photo, setPhoto] = useState(false);
   const custom = usePhotoOverride(w.slug);
+  const shared = useSharedPhoto(w.slug);
   const [toast, setToast] = useState("");
   const clearToast = useCallback(() => setToast(""), []);
 
@@ -59,7 +61,7 @@ export function Profile({ w }: { w: Wrestler }) {
         </div>
 
         <div>
-          {(() => { const c = renderCredit(w.slug); return custom ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Showing your custom photo (only visible to you)</p> : c ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Render cut out from a photo by {c.author} · <a href={c.page} target="_blank" rel="noopener noreferrer">{c.license}, Wikimedia Commons</a></p> : null; })()}
+          {(() => { const c = renderCredit(w.slug); return custom ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Showing the photo saved on this device (only visible to you)</p> : shared ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Photo shared by {shared.by || "Anonymous"} · Credit: {shared.credit} · <button className="linkish" onClick={() => setTab("reports")}>Report photo</button></p> : c ? <p className="credit" style={{ textAlign: "left", marginTop: 0 }}>Render cut out from a photo by {c.author} · <a href={c.page} target="_blank" rel="noopener noreferrer">{c.license}, Wikimedia Commons</a></p> : null; })()}
           <h1 className="p-name">{w.name}</h1>
           <div className="p-chips">
             {!d ? <span className="chip">Loading…</span> : d.entry ? (

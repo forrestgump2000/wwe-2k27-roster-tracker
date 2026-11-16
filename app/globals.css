@@ -369,3 +369,11 @@ textarea.inp { resize: vertical; min-height: 90px; }
 .create-new b { display: block; font-size: 14px; }
 .create-new small { color: var(--muted); font-size: 12px; }
 .chip.community { background: rgba(167,139,250,.16); border-color: rgba(167,139,250,.45); color: #ddd6fe; }
+.seg { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: rgba(0,0,0,.35); border: 1px solid var(--line); margin-bottom: 12px; }
+.seg button { border: 0; background: none; padding: 9px 8px; border-radius: 9px; font-weight: 700; font-size: 13px; color: var(--muted); cursor: pointer; }
+.seg button.on { background: var(--text); color: #000; }
+.small-note { font-size: 13px; line-height: 1.5; margin: 0 0 12px; }
+.small-note b { color: var(--text); }
+.check { display: flex; gap: 10px; align-items: flex-start; font-size: 12.5px; line-height: 1.5; color: #c9c9d3; cursor: pointer; }
+.check input { margin-top: 3px; accent-color: var(--red); flex: none; }
+.linkish { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font-size: inherit; }

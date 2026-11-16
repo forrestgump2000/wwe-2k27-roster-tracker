@@ -57,7 +57,7 @@ export function usePhotoOverride(slug: string) {
 }
 
 /** Downscales to max 640px tall and keeps transparency (WebP). */
-async function shrink(file: File): Promise<Blob> {
+export async function shrink(file: File): Promise<Blob> {
   const bmp = await createImageBitmap(file);
   const s = Math.min(1, 640 / bmp.height);
   const c = document.createElement("canvas");
